@@ -71,11 +71,15 @@ sysinfo.txt
 ############################
 
 # Claude Code
-.claude/
+.claude/**
+!.claude/settings.json
 .claude.json
 
 # GitHub Spec Kit
-.specify/
+.specify/**
+!.specify/
+!.specify/memory/
+!.specify/memory/constitution.md
 
 # Cursor
 .cursor/
@@ -103,4 +107,5 @@ sysinfo.txt
 *.psd
 
 # Ignoring all asset packs for now, this wont work long term
-/[Aa]ssets/[Aa]sset Packs/
+/[Aa]ssets/[Aa]sset Packs/**
+![Aa]ssets/[Aa]sset Packs/.gitkeep

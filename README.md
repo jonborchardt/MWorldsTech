@@ -14,6 +14,19 @@ A standalone game engine or a general-purpose Unity plugin. This is a game proje
 - Node.js 18+ (for MCP server)
 - Target platforms: Windows Standalone, Android/Mobile
 
+In order to run, add the following asset packs from unity store or local into the correct folder as:
+
+Assets
+
+- / Asset Packs
+  - / TODO, None yet
+
+Packages
+
+- / TODO, None yet
+
+After installing asset packs, run window/render/render pipeline converter -> 'built in to urp' -> 'material upgrade'
+
 ## How to run
 1. Open project in Unity 6 Editor
 2. Start MCP server: **Tools > MCP Unity > Server Window** → "Start Server"
