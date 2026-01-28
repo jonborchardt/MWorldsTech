@@ -23,7 +23,7 @@ Assets
 
 Packages
 
-- / TODO, None yet
+- / Mirror (free in asset store)
 
 After installing asset packs, run window/render/render pipeline converter -> 'built in to urp' -> 'material upgrade'
 

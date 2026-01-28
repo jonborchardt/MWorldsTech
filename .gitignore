@@ -109,3 +109,4 @@ sysinfo.txt
 # Ignoring all asset packs for now, this wont work long term
 /[Aa]ssets/[Aa]sset Packs/**
 ![Aa]ssets/[Aa]sset Packs/.gitkeep
+/[Aa]ssets/Mirror
