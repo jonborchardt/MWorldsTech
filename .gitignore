@@ -110,3 +110,5 @@ sysinfo.txt
 /[Aa]ssets/[Aa]sset Packs/**
 ![Aa]ssets/[Aa]sset Packs/.gitkeep
 /[Aa]ssets/Mirror
+
+/Builds/**
