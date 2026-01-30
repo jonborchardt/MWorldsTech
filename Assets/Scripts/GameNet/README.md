@@ -45,7 +45,7 @@ Assets/Scripts/GameNet/
 │   ├── RelayServerNetworkManager.cs (NetworkManager subclass)
 │   ├── RelayServerBehaviour.cs      (Handles Commands/RPCs)
 │   └── ServerBootstrap.cs           (Auto-start server in headless mode)
-├── Prefabs/                       (Place networked prefabs here)
+├── Prefabs/                       (Networked prefabs - Cube, NetworkedPlayer, OfflinePlayer)
 └── README.md (this file)
 ```
 
@@ -56,19 +56,30 @@ Three assemblies are defined:
 1. **GameNet.Shared** (references: Mirror)
    - Shared data structures and messages
    - No dependencies on client or server code
+   - File: [Shared/GameNet.Shared.asmdef](Shared/GameNet.Shared.asmdef)
 
 2. **GameNet.Client** (references: GameNet.Shared, Mirror, Unity.InputSystem)
    - Client-specific bootstrap, room loading, and input handling
    - Requires Unity Input System package (com.unity.inputsystem)
+   - Uses new Input System API with direct device polling fallback (`Keyboard.current`, `Mouse.current`)
+   - Includes version define for ENABLE_INPUT_SYSTEM when Input System package is present
+   - File: [Client/GameNet.Client.asmdef](Client/GameNet.Client.asmdef)
 
 3. **GameNet.Server** (references: GameNet.Shared, Mirror)
    - Server-specific relay logic and object spawning
+   - File: [Server/GameNet.Server.asmdef](Server/GameNet.Server.asmdef)
 
 ## Scene Setup
 
-### Step 1: Create Prefab Registry
+### Step 1: Create or Use Prefab Registry
 
 **Important:** Wait for Unity to finish compiling the GameNet scripts before proceeding. Check the bottom-right corner of Unity Editor for "Compiling..." to complete.
+
+A prefab registry already exists at [Assets/Scripts/GameNet/GameNetPrefabRegistry.asset](GameNetPrefabRegistry.asset) with these prefabs registered:
+- "NetworkedPlayer" (NetworkedPlayer prefab)
+- "Cube" (Cube prefab)
+
+**To create a new registry or modify existing:**
 
 1. In Unity, right-click in the Project window
 2. Create > GameNet > Prefab Registry
@@ -78,6 +89,14 @@ Three assemblies are defined:
    - Assign the prefab GameObject reference
 
 ### Step 2: Create Player Prefabs
+
+**Existing Prefabs:**
+The project already includes pre-configured prefabs in [Assets/Scripts/GameNet/Prefabs/](Prefabs/):
+- **NetworkedPlayer.prefab** - Networked player with all required components
+- **OfflinePlayer.prefab** - Offline player for single-player mode
+- **Cube.prefab** - Example networked room object
+
+You can use these as-is or create your own following the instructions below.
 
 **Networked Player Prefab (for online mode):**
 
@@ -504,22 +523,26 @@ GameNet provides two player controllers for different scenarios:
 - Does NOT require NetworkIdentity or Mirror components
 - Use this for your offline player prefab
 - Optional CharacterController support for gravity/collisions
-- Supports both old Input Manager and new Input System automatically
-- W/S: Move forward/backward
-- A/D: Rotate left/right
+- Uses Unity's new Input System with fallback to direct device polling (`Keyboard.current`, `Mouse.current`)
+- **Movement**: W/S (forward/backward), A/D (strafe left/right)
+- **Look**: Mouse movement (horizontal: rotate body, vertical: pitch camera)
+- Mouse cursor locked by default when active
 
 **ClientPlayerController** (for online/networked mode):
 - Networked WASD movement (requires NetworkIdentity)
 - Movement is client-authoritative (happens locally first)
 - ClientAuthorityTransformSync sends updates to server for relay
 - Use this for your networked player prefab
-- Supports both old Input Manager and new Input System automatically
-- W/S: Move forward/backward
-- A/D: Rotate left/right
+- Uses Unity's new Input System with fallback to direct device polling (`Keyboard.current`, `Mouse.current`)
+- **Movement**: W/S (forward/backward), A/D (strafe left/right)
+- **Look**: Mouse movement (horizontal: rotate body, vertical: pitch camera)
+- Mouse cursor locked by default when active
 
-**Important:**
-- Do NOT use ClientPlayerController on offline player prefabs - it requires Mirror components and will fail without a network connection
-- Both controllers automatically detect which Input System is active (old Input Manager vs. new Input System) and use the correct one
+**Input System Details:**
+- Both controllers use Unity's new Input System package (com.unity.inputsystem)
+- Can receive input via Input Actions (OnMove, OnLook callback methods)
+- Falls back to direct keyboard/mouse polling if no Input Actions are configured
+- Does NOT support the legacy Input Manager (Input.GetAxis)
 
 ## Features
 
@@ -532,7 +555,8 @@ GameNet provides two player controllers for different scenarios:
 - ✅ JSON-based room persistence (local files)
 - ✅ Debug UI with Connect/Disconnect buttons
 - ✅ Context menu helpers for testing
-- ✅ Supports both old Input Manager and new Input System
+- ✅ Uses Unity's new Input System with direct device polling fallback
+- ✅ First-person mouse look with pitch clamping and cursor locking
 
 ## Limitations
 
