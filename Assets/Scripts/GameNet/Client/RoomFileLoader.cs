@@ -1,5 +1,6 @@
 using UnityEngine;
 using GameNet.Shared;
+using GameNet.Utils;
 
 namespace GameNet.Client
 {
@@ -24,8 +25,8 @@ namespace GameNet.Client
 
             if (!System.IO.File.Exists(filePath))
             {
-                Debug.LogError($"[RoomFileLoader] Room file not found at: {filePath}. Create a room file first.", this);
-                loadedRoom = null;
+                Debug.Log($"[RoomFileLoader] Room file not found at: {filePath}. Creating default room with welcome message...", this);
+                CreateDefaultRoomWithTextCubes();
                 return;
             }
 
@@ -83,23 +84,54 @@ namespace GameNet.Client
         [ContextMenu("Create Sample Room File")]
         public void CreateSampleRoomFile()
         {
-            RoomFile sampleRoom = new RoomFile
+            CreateDefaultRoomWithTextCubes();
+        }
+
+        /// <summary>
+        /// Creates a default room with text cubes displaying a welcome message.
+        /// Called automatically when no room file exists.
+        /// </summary>
+        private void CreateDefaultRoomWithTextCubes()
+        {
+            var cubes = TextCubes.GetTextCubes(
+                "Welcome to\nMWorldsTech Demo",
+                startX: -40f,
+                startY: 1f,
+                startZ: 15f,
+                pixelSize: 1f,
+                charSpacing: 1f,
+                lineSpacing: 2f,
+                prefabId: "Cube",
+                stateJson: "",
+                stableIdPrefix: "welcome-cube"
+            );
+
+            RoomFile defaultRoom = new RoomFile
             {
-                roomName = "Sample Room",
-                objects = new System.Collections.Generic.List<RoomObjectFileEntry>
-                {
-                    new RoomObjectFileEntry
-                    {
-                        stableId = System.Guid.NewGuid().ToString(),
-                        prefabId = "Cube",
-                        posX = 0, posY = 1, posZ = 0,
-                        rotX = 0, rotY = 0, rotZ = 0,
-                        stateJson = ""
-                    }
-                }
+                roomName = "Default Room",
+                objects = new System.Collections.Generic.List<RoomObjectFileEntry>()
             };
 
-            SaveRoomFile(sampleRoom);
+            foreach (var cubeData in cubes)
+            {
+                var entry = new RoomObjectFileEntry
+                {
+                    stableId = cubeData["stableId"] as string,
+                    prefabId = cubeData["prefabId"] as string,
+                    posX = (float)cubeData["posX"],
+                    posY = (float)cubeData["posY"],
+                    posZ = (float)cubeData["posZ"],
+                    rotX = (float)cubeData["rotX"],
+                    rotY = (float)cubeData["rotY"],
+                    rotZ = (float)cubeData["rotZ"],
+                    stateJson = cubeData["stateJson"] as string
+                };
+                defaultRoom.objects.Add(entry);
+            }
+
+            SaveRoomFile(defaultRoom);
+            loadedRoom = defaultRoom;
+            Debug.Log($"[RoomFileLoader] Created default room with {defaultRoom.objects.Count} text cubes.");
         }
     }
 }
