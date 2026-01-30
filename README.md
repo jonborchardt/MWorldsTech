@@ -24,6 +24,8 @@ Assets
 Packages
 
 - / Mirror (free in asset store)
+- / PlayFlow (free in asset store)
+- / TextMesh Pro (free package)
 
 After installing asset packs, run window/render/render pipeline converter -> 'built in to urp' -> 'material upgrade'
 

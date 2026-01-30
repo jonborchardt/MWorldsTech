@@ -46,7 +46,7 @@ public class NetworkTransformSync : NetworkBehaviour
 
     /// <summary>
     /// SyncVar hook: called on clients when position changes.
-    /// For local player: apply directly (no smoothing, but has network lag).
+    /// For local player: apply immediately (server-authoritative, accepts network lag).
     /// For remote players: SimpleSmoothing handles interpolation.
     /// </summary>
     private void OnPositionChanged(Vector3 oldPos, Vector3 newPos)
@@ -59,7 +59,7 @@ public class NetworkTransformSync : NetworkBehaviour
 
     /// <summary>
     /// SyncVar hook: called on clients when rotation changes.
-    /// For local player: apply directly (no smoothing, but has network lag).
+    /// For local player: apply immediately (server-authoritative, accepts network lag).
     /// For remote players: SimpleSmoothing handles interpolation.
     /// </summary>
     private void OnRotationChanged(Quaternion oldRot, Quaternion newRot)

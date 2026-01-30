@@ -1,0 +1,17 @@
+{
+    "name": "GameNet.Server",
+    "rootNamespace": "GameNet.Server",
+    "references": [
+        "GameNet.Shared",
+        "Mirror"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

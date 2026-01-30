@@ -12,10 +12,26 @@ public class PlayerMotor : NetworkBehaviour
     public float sprintMultiplier = 1.5f;
     public float mouseSensitivity = 0.1f; // Tuned for new Input System mouse delta (raw pixels)
 
+    [Header("Camera Settings")]
+    public Transform cameraTransform; // Assign camera child in inspector
+
     private Vector3 currentMoveInput;
     private bool isSprinting;
     private float yaw;
     private float pitch;
+
+    private void Start()
+    {
+        // Find camera if not assigned
+        if (cameraTransform == null)
+        {
+            Camera cam = GetComponentInChildren<Camera>();
+            if (cam != null)
+            {
+                cameraTransform = cam.transform;
+            }
+        }
+    }
 
     /// <summary>
     /// Called by PlayerInput (via Command) to update the current input state.
@@ -54,7 +70,12 @@ public class PlayerMotor : NetworkBehaviour
             transform.position += direction * speed * Time.deltaTime;
         }
 
-        // Apply rotation
-        transform.rotation = Quaternion.Euler(pitch, yaw, 0);
+        // Apply rotation - body horizontal, camera vertical
+        transform.rotation = Quaternion.Euler(0, yaw, 0);
+
+        if (cameraTransform != null)
+        {
+            cameraTransform.localRotation = Quaternion.Euler(pitch, 0, 0);
+        }
     }
 }
