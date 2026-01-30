@@ -2,11 +2,31 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+For project governance principles, reference [.specify/memory/constitution.md](.specify/memory/constitution.md).
+
 ## Project Overview
 
 MWorldsTech is a Unity 6 game project with integrated MCP (Model Context Protocol) support, enabling AI assistants to directly interact with Unity Editor. The architecture follows a two-tier design:
 
 **AI Assistant** ⇄ (stdio) ⇄ **Node.js MCP Server** ⇄ (WebSocket) ⇄ **Unity Editor** ⇄ **Game Objects/Scenes**
+
+## Setup Requirements
+
+### Asset Store Packages (Required)
+Install these packages before running the project:
+1. **Mirror** - Free networking framework from Asset Store
+2. **PlayFlow** - Free cloud services from Asset Store
+3. **TextMesh Pro** - Free text rendering (Unity package)
+
+After installation:
+- **Window > Render Pipeline > URP Converter**: Run "Built-in to URP" → "Material Upgrade"
+
+### Folder Structure for Assets
+```
+Assets/
+└── Asset Packs/
+    └── (Asset Store content goes here)
+```
 
 ## Development Commands
 
@@ -14,6 +34,7 @@ MWorldsTech is a Unity 6 game project with integrated MCP (Model Context Protoco
 - Open Unity Editor and work with the project directly
 - **Tools > MCP Unity > Server Window**: Start/stop MCP server and configure settings
 - **Window > General > Test Runner**: Run Unity Test Framework tests (EditMode/PlayMode)
+- Default scenes: [ClientScene.unity](Assets/Scenes/ClientScene.unity) or [ServerScene.unity](Assets/Scenes/ServerScene.unity)
 
 ### MCP Node.js Server (Server~/Library/PackageCache/com.gamelovers.mcp-unity@*/Server~)
 ```bash
@@ -26,15 +47,18 @@ npm test             # Run tests
 
 ### MCP Tools Available
 Use these via natural language prompts with AI assistants:
-- `execute_menu_item`: Run Unity menu commands
-- `select_gameobject`, `get_gameobject`: Query/select scene objects
-- `update_gameobject`: Modify GameObject properties (name, tag, layer, active state)
-- `update_component`: Add/modify components on GameObjects
-- `create_prefab`, `add_asset_to_scene`: Asset management
-- `create_scene`, `load_scene`, `save_scene`, `delete_scene`: Scene operations
-- `run_tests`: Execute Unity tests via Test Runner
-- `create_material`, `assign_material`, `modify_material`: Material workflow
-- `batch_execute`: Run multiple operations atomically
+- **Menu & Selection**: `execute_menu_item`, `select_gameobject`
+- **GameObject Query/Modify**: `get_gameobject`, `update_gameobject` (name, tag, layer, active state)
+- **GameObject Hierarchy**: `duplicate_gameobject`, `delete_gameobject`, `reparent_gameobject`
+- **Transform Operations**: `move_gameobject`, `rotate_gameobject`, `scale_gameobject`, `set_transform`
+- **Components**: `update_component` (add/modify components on GameObjects)
+- **Assets**: `create_prefab`, `add_asset_to_scene`, `add_package`
+- **Scenes**: `create_scene`, `load_scene`, `save_scene`, `delete_scene`, `unload_scene`, `get_scene_info`
+- **Materials**: `create_material`, `assign_material`, `modify_material`, `get_material_info`
+- **Testing**: `run_tests` (EditMode/PlayMode via Unity Test Runner)
+- **Scripts**: `recompile_scripts`
+- **Logging**: `send_console_log`, `get_console_logs`
+- **Batch Operations**: `batch_execute` (atomic multi-step operations with rollback)
 
 ### MCP Resources (read-only queries)
 - `unity://menu-items`: List all available menu items
@@ -97,8 +121,23 @@ Avoid runtime reflection and stringly-typed lookups. No global service locators 
 
 ```
 Assets/
-├── Scenes/              # Game scenes (SampleScene.unity)
+├── Scenes/              # Game scenes
+│   ├── ClientScene.unity    # Client-side scene
+│   └── ServerScene.unity    # Server/host scene
+├── Scripts/
+│   ├── GameNet/         # Custom networking implementation
+│   │   ├── Client/      # Client-side networking logic
+│   │   ├── Server/      # Server-side networking logic
+│   │   ├── Shared/      # Shared networking code
+│   │   └── Prefabs/     # Network prefabs registry
+│   └── SimpleNet/       # Alternative networking implementation
 ├── Settings/            # URP render pipeline configs (PC_RPAsset, Mobile_RPAsset)
+│   └── Build Profiles/  # Build configuration profiles
+├── Prefabs/             # Reusable game object prefabs
+├── Resources/           # Runtime-loaded assets
+├── Mirror/              # Mirror networking framework (Asset Store)
+├── PlayFlowCloud/       # PlayFlow cloud services (Asset Store)
+├── TextMesh Pro/        # TextMesh Pro text rendering
 ├── TutorialInfo/        # Tutorial/readme system with custom inspector
 └── InputSystem_Actions.inputactions  # Input bindings (Move, Look, Attack, Interact, Crouch)
 
@@ -106,6 +145,7 @@ Library/PackageCache/
 └── com.gamelovers.mcp-unity@*/  # MCP Unity integration package
 
 ProjectSettings/         # Unity engine configuration
+└── Packages/com.unity.dedicated-server/  # Dedicated server configuration
 
 .specify/                # Spec Kit project planning system
 ├── memory/constitution.md  # Project governance principles
@@ -119,8 +159,19 @@ ProjectSettings/         # Unity engine configuration
 - **Testing**: Unity Test Framework 1.6.0
 - **Input**: Unity Input System 1.17.0
 - **AI Navigation**: Unity AI Navigation 2.0.9
+- **Networking**:
+  - Mirror (Asset Store package)
+  - PlayFlow Cloud (Asset Store package)
+  - Custom GameNet implementation
+  - Dedicated Server 2.0.1
+  - Multiplayer Center 1.0.1
+- **UI/Text**: TextMesh Pro
+- **Utilities**:
+  - Newtonsoft Json 3.2.2
+  - Timeline 1.8.10
+- **Cross-compilation**: Linux x86_64 toolchain (1.0.2)
 - **MCP Integration**: com.gamelovers.mcp-unity (GitHub package)
-- **Platforms**: Windows Standalone (primary), Android/Mobile support
+- **Platforms**: Windows Standalone (primary), Linux Dedicated Server, Android/Mobile support
 
 ## Input System Configuration
 
@@ -147,6 +198,22 @@ Pre-configured Player action map with:
 - **Config file**: `ProjectSettings/McpUnitySettings.json` (auto-managed)
 - **Timeout**: 10 seconds default (configurable)
 - **Remote connections**: Disabled by default (enable in Server Window to bind to 0.0.0.0)
+
+## Networking Architecture
+
+The project implements a client-server multiplayer architecture with multiple networking backends:
+
+- **ClientScene.unity**: Client-side scene for player connections
+- **ServerScene.unity**: Dedicated server/host scene
+- **GameNet**: Custom networking implementation with separation of concerns
+  - Client logic in `Assets/Scripts/GameNet/Client/`
+  - Server logic in `Assets/Scripts/GameNet/Server/`
+  - Shared protocol in `Assets/Scripts/GameNet/Shared/`
+  - Prefab registry for network object spawning
+- **Mirror**: Alternative networking framework (Asset Store)
+- **PlayFlow Cloud**: Cloud services integration
+
+Follow Constitution Principle X: Keep core networking logic in plain C# (Shared/), with Unity adapters in Client/Server layers.
 
 ## Common MCP Workflows
 
