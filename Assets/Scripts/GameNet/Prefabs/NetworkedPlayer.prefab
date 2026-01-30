@@ -197,7 +197,10 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   moveSpeed: 5
-  rotationSpeed: 180
+  cameraTransform: {fileID: 0}
+  mouseSensitivity: 0.08
+  verticalLookClamp: 80
+  lockCursor: 1
 --- !u!20 &8293276347100218810
 Camera:
   m_ObjectHideFlags: 0
