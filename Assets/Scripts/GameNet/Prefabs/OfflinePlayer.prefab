@@ -180,6 +180,6 @@ MonoBehaviour:
   moveSpeed: 5
   useCharacterController: 0
   cameraTransform: {fileID: 0}
-  mouseSensitivity: 2
+  mouseSensitivity: 0.04
   verticalLookClamp: 80
   lockCursor: 1

@@ -32,6 +32,7 @@ namespace GameNet.Client
         private Vector2 moveInput;
         private Vector2 lookInput;
         private float cameraPitch = 0f;
+        private float playerYaw = 0f;
 
         public override void OnStartClient()
         {
@@ -147,13 +148,25 @@ namespace GameNet.Client
                 float mouseX = lookInput.x * mouseSensitivity;
                 float mouseY = lookInput.y * mouseSensitivity;
 
-                // Rotate player body left/right (Y axis)
-                transform.Rotate(0, mouseX, 0);
+                // Accumulate horizontal rotation
+                playerYaw += mouseX;
 
-                // Rotate camera up/down (X axis) with clamping
+                // Accumulate vertical rotation with clamping
                 cameraPitch -= mouseY;
                 cameraPitch = Mathf.Clamp(cameraPitch, -verticalLookClamp, verticalLookClamp);
-                cameraTransform.localRotation = Quaternion.Euler(cameraPitch, 0, 0);
+
+                // Check if camera is on a child object or the same object
+                if (cameraTransform == transform)
+                {
+                    // Camera is on the same GameObject - apply combined rotation
+                    transform.rotation = Quaternion.Euler(cameraPitch, playerYaw, 0);
+                }
+                else
+                {
+                    // Camera is on a child - rotate body and camera separately
+                    transform.rotation = Quaternion.Euler(0, playerYaw, 0);
+                    cameraTransform.localRotation = Quaternion.Euler(cameraPitch, 0, 0);
+                }
             }
 
             // Reset look input for next frame (if using mouse delta polling)
