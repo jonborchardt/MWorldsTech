@@ -1,6 +1,7 @@
 using UnityEngine;
 using Mirror;
 using GameNet.Shared;
+using GameNet.UnityAdapters;
 using System.Collections.Generic;
 
 namespace GameNet.Server

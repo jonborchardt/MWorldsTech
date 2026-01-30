@@ -1,75 +1,77 @@
 using UnityEngine;
 using GameNet.Shared;
-using GameNet.Utils;
+using GameNet.Core;
+using GameNet.UnityAdapters;
 
 namespace GameNet.Client
 {
     /// <summary>
-    /// Loads a room JSON file from persistent data path.
-    /// Room files are stored locally and not transmitted to the server.
+    /// Unity adapter for loading room files.
+    /// Delegates to RoomFileService (Core layer) for actual file I/O.
     /// </summary>
     public class RoomFileLoader : MonoBehaviour
     {
-        [SerializeField]
-        private string roomFileName = "MyRoom.json";
+        private RoomFileService _service;
+        private RoomFile _loadedRoom;
+        private string _roomFileName;
 
-        private RoomFile loadedRoom;
+        public RoomFile LoadedRoom => _loadedRoom;
+        public bool IsLoaded => _loadedRoom != null;
 
-        public RoomFile LoadedRoom => loadedRoom;
-        public bool IsLoaded => loadedRoom != null;
+        /// <summary>
+        /// Initializes the loader with explicit dependencies.
+        /// Call this before using LoadRoomFile or SaveRoomFile.
+        /// </summary>
+        public void Initialize(string roomFileName = "MyRoom.json")
+        {
+            if (string.IsNullOrEmpty(roomFileName))
+            {
+                throw new System.ArgumentException("Room file name cannot be null or empty.", nameof(roomFileName));
+            }
+
+            _roomFileName = roomFileName;
+            _service = new RoomFileService(
+                Application.persistentDataPath,
+                new UnityJsonSerializer(),
+                new UnityLogger(this)
+            );
+        }
 
         [ContextMenu("Load Room File")]
         public void LoadRoomFile()
         {
-            string filePath = System.IO.Path.Combine(Application.persistentDataPath, roomFileName);
-
-            if (!System.IO.File.Exists(filePath))
+            if (_service == null)
             {
-                Debug.Log($"[RoomFileLoader] Room file not found at: {filePath}. Creating default room with welcome message...", this);
-                CreateDefaultRoomWithTextCubes();
+                Debug.LogError("[RoomFileLoader] Service not initialized. Call Initialize() first.", this);
                 return;
             }
 
-            try
+            _loadedRoom = _service.Load(_roomFileName);
+
+            if (_loadedRoom == null)
             {
-                string json = System.IO.File.ReadAllText(filePath);
-                loadedRoom = JsonUtility.FromJson<RoomFile>(json);
-
-                if (loadedRoom == null)
-                {
-                    Debug.LogError($"[RoomFileLoader] Failed to deserialize room file at: {filePath}", this);
-                    return;
-                }
-
-                if (loadedRoom.objects == null)
-                {
-                    loadedRoom.objects = new System.Collections.Generic.List<RoomObjectFileEntry>();
-                }
-
-                Debug.Log($"[RoomFileLoader] Loaded room '{loadedRoom.roomName}' with {loadedRoom.objects.Count} objects from: {filePath}");
-            }
-            catch (System.Exception ex)
-            {
-                Debug.LogError($"[RoomFileLoader] Exception loading room file: {ex.Message}", this);
-                loadedRoom = null;
+                Debug.Log("[RoomFileLoader] Room file not found. Creating default room with welcome message...", this);
+                CreateDefaultRoomWithTextCubes();
             }
         }
 
         public void SaveRoomFile(RoomFile room)
         {
+            if (_service == null)
+            {
+                Debug.LogError("[RoomFileLoader] Service not initialized. Call Initialize() first.", this);
+                return;
+            }
+
             if (room == null)
             {
                 Debug.LogError("[RoomFileLoader] Cannot save null room.", this);
                 return;
             }
 
-            string filePath = System.IO.Path.Combine(Application.persistentDataPath, roomFileName);
-
             try
             {
-                string json = JsonUtility.ToJson(room, true);
-                System.IO.File.WriteAllText(filePath, json);
-                Debug.Log($"[RoomFileLoader] Saved room '{room.roomName}' to: {filePath}");
+                _service.Save(room, _roomFileName);
             }
             catch (System.Exception ex)
             {
@@ -130,8 +132,14 @@ namespace GameNet.Client
             }
 
             SaveRoomFile(defaultRoom);
-            loadedRoom = defaultRoom;
-            Debug.Log($"[RoomFileLoader] Created default room with {defaultRoom.objects.Count} text cubes.");
+            _loadedRoom = defaultRoom;
+            Debug.Log($"[RoomFileLoader] Created default room with {defaultRoom.objects.Count} text cubes.", this);
+        }
+
+        private void Awake()
+        {
+            // Initialize with default filename on Awake
+            Initialize();
         }
     }
 }

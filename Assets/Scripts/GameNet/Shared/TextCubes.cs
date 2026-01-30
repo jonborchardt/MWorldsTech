@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace GameNet.Utils
+namespace GameNet.Shared
 {
     public static class TextCubes
-{
+    {
     private const int CharWidth = 5;
     private const int CharHeight = 7;
 

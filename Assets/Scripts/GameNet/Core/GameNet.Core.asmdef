@@ -1,11 +1,8 @@
 {
-    "name": "GameNet.Server",
-    "rootNamespace": "GameNet.Server",
+    "name": "GameNet.Core",
+    "rootNamespace": "GameNet.Core",
     "references": [
-        "GameNet.Shared",
-        "GameNet.Core",
-        "GameNet.UnityAdapters",
-        "Mirror"
+        "GameNet.Shared"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

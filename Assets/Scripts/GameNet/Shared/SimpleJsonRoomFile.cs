@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace GameNet.Shared
 {
     /// <summary>
     /// Root data structure for a room save file.
     /// Serialized to/from JSON on client side only.
+    /// Pure C# data structure with no Unity dependencies.
     /// </summary>
     [Serializable]
     public class RoomFile
@@ -17,6 +17,8 @@ namespace GameNet.Shared
 
     /// <summary>
     /// Individual room object entry in the save file.
+    /// Pure C# data structure with no Unity dependencies.
+    /// Use RoomObjectEntryExtensions (in UnityAdapters) for Unity type conversions.
     /// </summary>
     [Serializable]
     public class RoomObjectFileEntry
@@ -37,30 +39,5 @@ namespace GameNet.Shared
         /// Can be empty or contain additional object-specific data.
         /// </summary>
         public string stateJson = string.Empty;
-
-        public Vector3 GetPosition()
-        {
-            return new Vector3(posX, posY, posZ);
-        }
-
-        public Quaternion GetRotation()
-        {
-            return Quaternion.Euler(rotX, rotY, rotZ);
-        }
-
-        public void SetPosition(Vector3 pos)
-        {
-            posX = pos.x;
-            posY = pos.y;
-            posZ = pos.z;
-        }
-
-        public void SetRotation(Quaternion rot)
-        {
-            Vector3 euler = rot.eulerAngles;
-            rotX = euler.x;
-            rotY = euler.y;
-            rotZ = euler.z;
-        }
     }
 }

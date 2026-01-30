@@ -1,5 +1,6 @@
 using UnityEngine;
 using GameNet.Shared;
+using GameNet.UnityAdapters;
 using System.Collections.Generic;
 
 namespace GameNet.Client
