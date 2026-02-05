@@ -101,18 +101,7 @@ Log with intent, not spam.
 
 Fail fast, fail where the mistake is made.
 
-### X. Unity Is the Host, Not the Architecture
-The game architecture should survive outside Unity.
-
-Core logic in plain C# assemblies with minimal Unity dependencies.
-
-Unity facing code is adapters and glue.
-
-Systems should be testable without Play Mode.
-
-This is the difference between a game and a prototype.
-
-### XI. Modularity Over Convenience
+### X. Modularity Over Convenience
 Short-term convenience is technical debt.
 
 No god objects.
@@ -123,7 +112,7 @@ Systems communicate through narrow contracts.
 
 If everything can see everything, nothing is understandable.
 
-### XII. Optimize for Change, Not Perfection
+### XI. Optimize for Change, Not Perfection
 The code will change. Design for that.
 
 Make deletion easy.
@@ -133,6 +122,12 @@ Prefer clarity over cleverness.
 Refactor early and often.
 
 The best Unity projects are boring to read.
+
+### XII. Readonly Folder
+The following folders are readonly. Do not edit them.
+`Assets/Asset Packs`
+`Assest/TextMesh Pro`
+`Packages`
 
 ## Architecture Constraints
 

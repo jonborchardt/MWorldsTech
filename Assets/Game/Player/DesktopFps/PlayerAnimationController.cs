@@ -80,6 +80,8 @@ namespace Game.Player.DesktopFps
         [SerializeField] private Animator _animator;
         [Tooltip("Character Controller component for controlling player movement")]
         [SerializeField] private CharacterController _controller;
+        [Tooltip("Capsule controller for managing height/center during crouch")]
+        [SerializeField] private PlayerCapsuleController _capsuleController;
 
         #endregion
 
@@ -106,15 +108,7 @@ namespace Game.Player.DesktopFps
 
         #endregion
 
-        #region Capsule Settings
-
-        [Header("Capsule Values")]
-        [SerializeField] private float _capsuleStandingHeight = 1.8f;
-        [SerializeField] private float _capsuleStandingCentre = 0.93f;
-        [SerializeField] private float _capsuleCrouchingHeight = 1.2f;
-        [SerializeField] private float _capsuleCrouchingCentre = 0.6f;
-
-        #endregion
+        // Capsule settings moved to PlayerCapsuleController
 
         #region Strafing
 
@@ -181,7 +175,6 @@ namespace Game.Player.DesktopFps
 
         private readonly List<GameObject> _currentTargetCandidates = new List<GameObject>();
         private AnimationState _currentState = AnimationState.Base;
-        private bool _cannotStandUp;
         private bool _crouchKeyPressed;
         private bool _isAiming;
         private bool _isCrouching;
@@ -228,6 +221,11 @@ namespace Game.Player.DesktopFps
 
         private void Start()
         {
+            if (_capsuleController == null)
+            {
+                Debug.LogError($"{nameof(PlayerAnimationController)}: _capsuleController is not assigned. Crouch will not work properly.", this);
+            }
+
             _inputReader.onWalkToggled += ToggleWalk;
             _inputReader.onSprintActivated += ActivateSprint;
             _inputReader.onSprintDeactivated += DeactivateSprint;
@@ -317,9 +315,9 @@ namespace Game.Player.DesktopFps
         {
             _crouchKeyPressed = true;
 
-            if (_isGrounded)
+            if (_isGrounded && _capsuleController != null)
             {
-                CapsuleCrouchingSize(true);
+                _capsuleController.SetCrouching(true);
                 DeactivateSprint();
                 _isCrouching = true;
             }
@@ -329,9 +327,9 @@ namespace Game.Player.DesktopFps
         {
             _crouchKeyPressed = false;
 
-            if (!_cannotStandUp && !_isSliding)
+            if (_capsuleController != null && _capsuleController.CanStandUp() && !_isSliding)
             {
-                CapsuleCrouchingSize(false);
+                _capsuleController.SetCrouching(false);
                 _isCrouching = false;
             }
         }
@@ -344,20 +342,6 @@ namespace Game.Player.DesktopFps
         public void DeactivateSliding()
         {
             _isSliding = false;
-        }
-
-        private void CapsuleCrouchingSize(bool crouching)
-        {
-            if (crouching)
-            {
-                _controller.center = new Vector3(0f, _capsuleCrouchingCentre, 0f);
-                _controller.height = _capsuleCrouchingHeight;
-            }
-            else
-            {
-                _controller.center = new Vector3(0f, _capsuleStandingCentre, 0f);
-                _controller.height = _capsuleStandingHeight;
-            }
         }
 
         #endregion
@@ -754,41 +738,6 @@ namespace Game.Player.DesktopFps
             }
         }
 
-        private void CeilingHeightCheck()
-        {
-            // Replacement for the old ray-based ceiling check.
-            // If crouching, verify standing capsule would fit.
-            if (!_isCrouching)
-            {
-                _cannotStandUp = false;
-                return;
-            }
-
-            float radius = Mathf.Max(0.01f, _controller.radius * 0.95f);
-
-            // Use current crouch center/height but test target standing height.
-            Vector3 centerWorld = transform.position + _controller.center;
-
-            float currentHeight = _controller.height;
-            float targetHeight = _capsuleStandingHeight;
-
-            if (targetHeight <= currentHeight + 0.001f)
-            {
-                _cannotStandUp = false;
-                return;
-            }
-
-            float bottomY = centerWorld.y - (currentHeight * 0.5f) + radius;
-            float topY = bottomY + (targetHeight - 2.0f * radius);
-
-            float extra = (targetHeight - currentHeight) + 0.05f;
-
-            Vector3 p1 = new Vector3(centerWorld.x, bottomY, centerWorld.z);
-            Vector3 p2 = new Vector3(centerWorld.x, topY + extra, centerWorld.z);
-
-            _cannotStandUp = Physics.CheckCapsule(p1, p2, radius, _groundLayerMask, QueryTriggerInteraction.Ignore);
-        }
-
         #endregion
 
         #region Falling duration
@@ -1076,21 +1025,22 @@ namespace Game.Player.DesktopFps
             if (!_isGrounded)
             {
                 DeactivateCrouch();
-                CapsuleCrouchingSize(false);
+                if (_capsuleController != null)
+                {
+                    _capsuleController.SetCrouching(false);
+                }
                 SwitchState(AnimationState.Fall);
             }
 
-            CeilingHeightCheck();
-
-            if (!_crouchKeyPressed && !_cannotStandUp)
+            if (_capsuleController != null && !_crouchKeyPressed && _capsuleController.CanStandUp())
             {
                 DeactivateCrouch();
                 SwitchToLocomotionState();
             }
 
-            if (!_isCrouching)
+            if (!_isCrouching && _capsuleController != null)
             {
-                CapsuleCrouchingSize(false);
+                _capsuleController.SetCrouching(false);
                 SwitchToLocomotionState();
             }
 
@@ -1115,7 +1065,7 @@ namespace Game.Player.DesktopFps
 
         private void CrouchToJumpState()
         {
-            if (!_cannotStandUp)
+            if (_capsuleController != null && _capsuleController.CanStandUp())
             {
                 DeactivateCrouch();
                 SwitchState(AnimationState.Jump);

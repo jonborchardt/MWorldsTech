@@ -14,17 +14,29 @@ namespace Game.Player.DesktopFps
         [SerializeField] private Transform cameraTransform;
         [Tooltip("InputReader handles player input")]
         [SerializeField] private InputSystem.InputReader inputReader;
+        [Tooltip("Capsule controller for tracking crouch height changes")]
+        [SerializeField] private PlayerCapsuleController capsuleController;
 
         [Header("Look")]
         [SerializeField] private float mouseSensitivity = 0.08f;
         [SerializeField] private float minPitch = -85.0f;
         [SerializeField] private float maxPitch = 85.0f;
 
+        [Header("Crouch Camera Settings")]
+        [Tooltip("How far forward the camera moves when crouching")]
+        [SerializeField] private float crouchForwardOffset = 0.2f;
+        [Tooltip("How fast the camera transitions during crouch/stand (units per second). Lower = slower/smoother")]
+        [SerializeField] private float crouchTransitionSpeed = 0.8f;
+
         [Header("Cursor")]
         [SerializeField] private bool lockCursorOnEnable = true;
 
         private float yaw;
         private float pitch;
+        private float baseCameraPivotY;
+        private float baseCameraPivotZ;
+        private float currentForwardOffset;
+        private float currentVerticalOffset;
 
         private void Awake()
         {
@@ -44,6 +56,14 @@ namespace Game.Player.DesktopFps
             {
                 cameraTransform = cameraPivot;
             }
+
+            // Store baseline camera pivot Y and Z for capsule height and crouch forward offset tracking
+            baseCameraPivotY = cameraPivot.localPosition.y;
+            baseCameraPivotZ = cameraPivot.localPosition.z;
+
+            // Initialize current offsets to zero (start at standing position)
+            currentForwardOffset = 0f;
+            currentVerticalOffset = 0f;
 
             var euler = playerBody.rotation.eulerAngles;
             yaw = euler.y;
@@ -73,6 +93,39 @@ namespace Game.Player.DesktopFps
             {
                 inputReader.onLook -= OnLook;
             }
+        }
+
+        private void LateUpdate()
+        {
+            if (cameraPivot == null)
+            {
+                return;
+            }
+
+            // Determine target offsets based on crouch state
+            float targetForwardOffset = 0f;
+            float targetVerticalOffset = 0f;
+
+            if (capsuleController != null)
+            {
+                if (capsuleController.IsCrouching)
+                {
+                    targetForwardOffset = crouchForwardOffset;
+                }
+
+                // Calculate vertical offset from capsule height change
+                targetVerticalOffset = capsuleController.CurrentHeight - capsuleController.StandingHeight;
+            }
+
+            // Smoothly move toward target offsets at a constant speed
+            currentForwardOffset = Mathf.MoveTowards(currentForwardOffset, targetForwardOffset, crouchTransitionSpeed * Time.deltaTime);
+            currentVerticalOffset = Mathf.MoveTowards(currentVerticalOffset, targetVerticalOffset, crouchTransitionSpeed * Time.deltaTime);
+
+            // Apply offsets to camera position
+            Vector3 currentPos = cameraPivot.localPosition;
+            currentPos.y = baseCameraPivotY + currentVerticalOffset;
+            currentPos.z = baseCameraPivotZ + currentForwardOffset;
+            cameraPivot.localPosition = currentPos;
         }
 
         public void OnLook(Vector2 lookDelta)
