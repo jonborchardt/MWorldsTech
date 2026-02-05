@@ -32,8 +32,11 @@ After installing asset packs, run window/render/render pipeline converter -> 'bu
 ## How to run
 1. Open project in Unity 6 Editor
 2. Start MCP server: **Tools > MCP Unity > Server Window** → "Start Server"
-3. Open scene: **Assets/Scenes/SampleScene.unity**
+3. Open scene: **Assets/Scenes/DesktopRig.unity**
 4. Press Play in Unity Editor
+
+## Current Scene Layout
+- **DesktopRig.unity**: Desktop FPS player development/testing scene
 
 ## PlayFlow + Mirror Quickstart (Internal Notes)
 

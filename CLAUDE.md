@@ -35,7 +35,7 @@ Assets/
 - Open Unity Editor and work with the project directly
 - **Tools > MCP Unity > Server Window**: Start/stop MCP server and configure settings
 - **Window > General > Test Runner**: Run Unity Test Framework tests (EditMode/PlayMode)
-- Default scenes: [ClientScene.unity](Assets/Scenes/ClientScene.unity) or [ServerScene.unity](Assets/Scenes/ServerScene.unity)
+- Development scene: [DesktopRig.unity](Assets/Scenes/DesktopRig.unity)
 
 ### MCP Node.js Server (Server~/Library/PackageCache/com.gamelovers.mcp-unity@*/Server~)
 ```bash
@@ -123,10 +123,18 @@ Avoid runtime reflection and stringly-typed lookups. No global service locators 
 ```
 Assets/
 ├── Scenes/              # Game scenes
-│   ├── ClientScene.unity    # Client-side scene
-│   └── ServerScene.unity    # Server/host scene
+│   └── DesktopRig.unity     # Desktop FPS player development/testing scene
+├── Game/
+│   └── Player/          # Player character systems
+│       └── DesktopFps/  # Desktop first-person player controller
+│           ├── CameraController.cs          # FPS camera with crouch offsets
+│           ├── PlayerAnimationController.cs # Animation state machine
+│           ├── PlayerCapsuleController.cs   # Capsule height management
+│           └── InputSystem/                 # Input handling
+│               ├── InputReader.cs           # Input event dispatcher
+│               └── Controls.cs              # Input action definitions
 ├── Scripts/
-│   ├── GameNet/         # Custom networking implementation
+│   ├── GameNet/         # Custom networking implementation (future)
 │   │   ├── Client/      # Client-side networking logic
 │   │   ├── Server/      # Server-side networking logic
 │   │   ├── Shared/      # Shared networking code
@@ -135,6 +143,7 @@ Assets/
 ├── Settings/            # URP render pipeline configs (PC_RPAsset, Mobile_RPAsset)
 │   └── Build Profiles/  # Build configuration profiles
 ├── Prefabs/             # Reusable game object prefabs
+│   └── AnimatedPlayer.prefab  # FPS player with animations
 ├── Resources/           # Runtime-loaded assets
 ├── Mirror/              # Mirror networking framework (Asset Store)
 ├── PlayFlowCloud/       # PlayFlow cloud services (Asset Store)
@@ -200,19 +209,38 @@ Pre-configured Player action map with:
 - **Timeout**: 10 seconds default (configurable)
 - **Remote connections**: Disabled by default (enable in Server Window to bind to 0.0.0.0)
 
-## Networking Architecture
+## Player Controller Architecture
 
-The project implements a client-server multiplayer architecture with multiple networking backends:
+The current desktop FPS player uses a component-based architecture:
 
-- **ClientScene.unity**: Client-side scene for player connections
-- **ServerScene.unity**: Dedicated server/host scene
-- **GameNet**: Custom networking implementation with separation of concerns
+**Core Components**:
+- **CameraController** - Handles mouse look (yaw/pitch) and crouch camera offsets
+  - Smooth transitions for crouch forward/down movement
+  - Configurable via `crouchForwardOffset` and `crouchTransitionSpeed`
+- **PlayerAnimationController** - State machine for locomotion, crouch, jump, fall states
+  - Integrates with Synty character animations
+  - Handles movement speed blending and strafing
+- **PlayerCapsuleController** - Manages CharacterController dimensions for crouch
+  - Single source of truth for player height
+  - Ceiling detection for safe stand-up
+- **InputReader** - Event-based input dispatcher (walk, sprint, crouch, aim, jump)
+
+**Known Constitution Violations**:
+- PlayerAnimationController is a "god object" handling too many concerns (~1000 lines)
+- Lifecycle spread across Unity callbacks instead of explicit Initialize/Tick/Shutdown
+- See `.specify/memory/code-review-notes.md` for refactoring plans
+
+## Networking Architecture (Future)
+
+Planned client-server multiplayer architecture with multiple networking backends:
+
+- **GameNet**: Custom networking implementation with separation of concerns (not yet implemented)
   - Client logic in `Assets/Scripts/GameNet/Client/`
   - Server logic in `Assets/Scripts/GameNet/Server/`
   - Shared protocol in `Assets/Scripts/GameNet/Shared/`
   - Prefab registry for network object spawning
-- **Mirror**: Alternative networking framework (Asset Store)
-- **PlayFlow Cloud**: Cloud services integration
+- **Mirror**: Alternative networking framework (Asset Store - available)
+- **PlayFlow Cloud**: Cloud services integration (Asset Store - available)
 
 Follow Constitution Principle X: Keep core networking logic in plain C# (Shared/), with Unity adapters in Client/Server layers.
 
