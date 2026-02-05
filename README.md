@@ -7,7 +7,7 @@ A Unity 6 game project with MCP (Model Context Protocol) integration, enabling A
 A standalone game engine or a general-purpose Unity plugin. This is a game project that uses MCP Unity for AI-assisted development.
 
 ## Tech
-- Unity 6.0.3+
+- Unity 6.3LTS
 - C# 9.0 (.NET 4.7.1)
 - Universal Render Pipeline (URP)
 - Unity Input System
@@ -19,7 +19,7 @@ In order to run, add the following asset packs from unity store or local into th
 Assets
 
 - / Asset Packs
-  - / TODO, None yet
+  - / Synt/AnimationBaseLocomotion
 
 Packages
 

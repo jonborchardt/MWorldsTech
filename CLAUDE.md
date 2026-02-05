@@ -3,6 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 For project governance principles, reference [.specify/memory/constitution.md](.specify/memory/constitution.md).
+For project README, reference [README.md](README.md).
 
 ## Project Overview
 
